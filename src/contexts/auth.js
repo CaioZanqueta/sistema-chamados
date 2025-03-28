@@ -50,13 +50,13 @@ function AuthProvider({ children }) {
       setUser(data)
       storageUser(data)
       setLoadingAuth(false)
-      toast.success(`Seja bem-vindo(a) de volta, ${data.nome}!`)
+      toast.success(`Seja bem-vindo(a) de volta, ${data.nome}!`, { theme: 'dark' })
       navigate("/dashboard")
     } )
     .catch( (error) => {
       console.log(error)
       setLoadingAuth(false)
-      toast.error("Ops algo deu errado!")
+      toast.error("Ops algo deu errado!", { theme: 'dark' })
     } )
   }
 
@@ -81,14 +81,14 @@ function AuthProvider({ children }) {
         setUser(data)
         storageUser(data)
         setLoadingAuth(false)
-        toast.success(`Seja bem-vindo(a) ao sistema, ${data.nome}!`)
+        toast.success(`Seja bem-vindo(a) ao sistema, ${data.nome}!`, { theme: 'dark' })
         navigate("/dashboard")
       } )
     } )
     .catch( (error) => {
       console.log(error)
       setLoadingAuth(false)
-      toast.error("Ops algo deu errado!")
+      toast.error("Ops algo deu errado!", { theme: 'dark' })
     } )
   }
 
@@ -111,7 +111,9 @@ function AuthProvider({ children }) {
         signUp,
         logout,
         loadingAuth,
-        loading
+        loading,
+        storageUser,
+        setUser
       }}
     >
       {children}
