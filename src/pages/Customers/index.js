@@ -34,6 +34,7 @@ export default function Customers() {
       })
       .catch((error) => {
         console.log(error)
+        setRegister(false)
         toast.error("Erro ao cadastrar o cliente", { theme: 'dark' })
       })
     } else {
@@ -59,7 +60,7 @@ export default function Customers() {
           <label>Endereço</label>
           <input type="text" placeholder='Digite o endereço' value={endereco} onChange={(e) => setEndereco(e.target.value)} />
 
-          <button type="submit" disabled={register === true} style={{opacity: register === true ? 0.3 : 1}}>
+          <button type="submit" disabled={register === true} style={{opacity: register === true ? 0.3 : 1, cursor: 'not-allowed'}}>
             Salvar
           </button>
         </form>

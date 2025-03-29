@@ -4,7 +4,7 @@ import Title from '../../components/Title';
 import { toast } from "react-toastify";
 import { AuthContext } from '../../contexts/auth';
 import { db } from '../../services/firebaseConnection';
-import { collection, getDocs, getDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, addDoc } from 'firebase/firestore';
 
 import './new.css'
 import { FiPlusCircle } from 'react-icons/fi';
@@ -20,6 +20,7 @@ export default function New() {
   const [complemento, setComplemento] = useState('')
   const [assunto, setAssunto] = useState('Suporte')
   const [status, setStatus] = useState('Aberto')
+  const [register, setRegister] = useState(false)
 
   useEffect(() => {
     async function loadCustomers() {
@@ -64,6 +65,34 @@ export default function New() {
     setCustomerSelected(e.target.value)
   }
 
+  async function handleRegister(e) {
+    e.preventDefault()
+    setRegister(true)
+
+    await addDoc(collection(db, "tickets"), {
+      created: new Date(),
+      clientes: customers[customerSelected].cliente,
+      clienteId: customers[customerSelected].id,
+      assunto: assunto,
+      complemento: complemento,
+      status: status,
+      userId: user.uid
+    })
+    .then(() => {
+      toast.success("Chamado registrado", { theme: 'dark' })
+      setComplemento('')
+      setCustomerSelected(0)
+      setAssunto('Suporte')
+      setStatus('Aberto')
+      setRegister(false)
+    })
+    .catch((error) => {
+      toast.error("Ops, erro ao registrar!", { theme: 'dark' })
+      console.log(error)
+      setRegister(false)
+    })
+  }
+
  return (
    <div>
     <Header />
@@ -72,7 +101,7 @@ export default function New() {
         <FiPlusCircle size={25} />
       </Title>
       <div className="container">
-        <form className="form-profile">
+        <form className="form-profile" onSubmit={handleRegister}>
 
           <label>Clientes</label>
           {
@@ -111,7 +140,7 @@ export default function New() {
           <label>Complemento</label>
           <textarea type="text" placeholder='Descreva o chamado' value={complemento} onChange={(e) => setComplemento(e.target.value)} />
 
-          <button type="submit">Registrar</button>
+          <button type="submit" disabled={register === true} style={{opacity: register === true ? 0.3 : 1, cursor: register === true ? 'not-allowed' : 'pointer'}}>Registrar</button>
 
         </form>
       </div>
