@@ -4,7 +4,9 @@ import Title from '../../components/Title';
 import { toast } from "react-toastify";
 import { AuthContext } from '../../contexts/auth';
 import { db } from '../../services/firebaseConnection';
-import { collection, getDocs, getDoc, doc, addDoc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, addDoc, updateDoc } from 'firebase/firestore';
+
+import { useParams, useNavigate } from 'react-router-dom';
 
 import './new.css'
 import { FiPlusCircle } from 'react-icons/fi';
@@ -13,6 +15,8 @@ const listRef = collection(db, "customers")
 
 export default function New() {
   const { user } = useContext(AuthContext)
+  const { id } = useParams()
+  const navigate = useNavigate()
 
   const [customers, setCustomers] = useState([])
   const [loadCustomer, setLoadCustomer] = useState(true)
@@ -21,6 +25,7 @@ export default function New() {
   const [assunto, setAssunto] = useState('Suporte')
   const [status, setStatus] = useState('Aberto')
   const [register, setRegister] = useState(false)
+  const [idCustomer, setIdCustomer] = useState(false)
 
   useEffect(() => {
     async function loadCustomers() {
@@ -42,6 +47,10 @@ export default function New() {
 
         setCustomers(lista)
         setLoadCustomer(false)
+
+        if (id) {
+          loadId(lista)
+        }
       })
       .catch((error) => {
         console.log(error)
@@ -51,7 +60,25 @@ export default function New() {
     }
 
     loadCustomers()
-  }, [])
+  }, [id])
+
+  async function loadId(lista) {
+    const docRef = doc(db, "tickets", id)
+    await getDoc(docRef)
+    .then((snapshot) => {
+      setAssunto(snapshot.data().assunto)
+      setStatus(snapshot.data().status)
+      setComplemento(snapshot.data().complemento)
+
+      let index = lista.findIndex(item => item.id === snapshot.data().clienteId)
+      setCustomerSelected(index)
+      setIdCustomer(true)
+    })
+    .catch((error) => {
+      console.log(error)
+      setIdCustomer(false)
+    })
+  }
 
   function handleOptionChange(e) {
     setStatus(e.target.value)
@@ -67,6 +94,31 @@ export default function New() {
 
   async function handleRegister(e) {
     e.preventDefault()
+
+    if (idCustomer) {
+      const docRef = doc(db, "tickets", id)
+      await updateDoc(docRef, {
+        clientes: customers[customerSelected].cliente,
+        clienteId: customers[customerSelected].id,
+        assunto: assunto,
+        complemento: complemento,
+        status: status,
+        userId: user.uid
+      })
+      .then(() => {
+        toast.info("Chamado atualizado", { theme: 'dark' })
+        setCustomerSelected(0)
+        setComplemento('')
+        navigate('/dashboard')
+      })
+      .catch((error) => {
+        toast.error("Ops, erro ao atualizar!", { theme: 'dark' })
+        console.log(error)
+      })
+
+      return
+    }
+
     setRegister(true)
 
     await addDoc(collection(db, "tickets"), {
@@ -97,7 +149,7 @@ export default function New() {
    <div>
     <Header />
     <div className="content">
-      <Title name="Novo chamado">
+      <Title name={id ? "Editando chamado" : "Novo chamado"}>
         <FiPlusCircle size={25} />
       </Title>
       <div className="container">
@@ -140,7 +192,7 @@ export default function New() {
           <label>Complemento</label>
           <textarea type="text" placeholder='Descreva o chamado' value={complemento} onChange={(e) => setComplemento(e.target.value)} />
 
-          <button type="submit" disabled={register === true} style={{opacity: register === true ? 0.3 : 1, cursor: register === true ? 'not-allowed' : 'pointer'}}>Registrar</button>
+          <button type="submit" disabled={register === true} style={{opacity: register === true ? 0.3 : 1, cursor: register === true ? 'not-allowed' : 'pointer'}}>{id ? "Atualizar" : "Registrar"}</button>
 
         </form>
       </div>
