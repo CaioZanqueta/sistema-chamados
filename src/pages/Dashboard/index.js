@@ -3,6 +3,7 @@ import { db } from '../../services/firebaseConnection'
 
 import Header from '../../components/Header'
 import Title from '../../components/Title'
+import Modal from '../../components/Modal'
 
 import { FiEdit2, FiMessageSquare, FiPlus, FiSearch } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
@@ -20,6 +21,8 @@ export default function Dashboard() {
   const [isEmpty, setIsEmpty] = useState(false)
   const [lastDocs, setLastDocs] = useState()
   const [loadingMore, setLoadingMore] = useState(false)
+  const [showPostModal, setShowPostModal] = useState(false)
+  const [detail, setDetail] = useState()
 
   useEffect(() => {
     async function loadChamados() {
@@ -49,7 +52,7 @@ export default function Dashboard() {
           clientes: doc.data().clientes,
           clienteId: doc.data().clienteId,
           created: doc.data().created,
-          createdFormat: format(doc.data().created.toDate(), 'dd/MM/yyyy, HH:mm:ss'),
+          createdFormat: format(doc.data().created.toDate(), 'dd/MM/yyyy HH:mm'),
           status: doc.data().status,
           complemento: doc.data().complemento
         })
@@ -73,6 +76,11 @@ export default function Dashboard() {
     const q = query(listRef, orderBy('created', 'desc'), startAfter(lastDocs), limit(10))
     const querySnapshot = await getDocs(q)
     await updateState(querySnapshot)
+  }
+
+  function toggleModal(item) {
+    setShowPostModal(!showPostModal)
+    setDetail(item)
   }
 
   if (loading) {
@@ -139,7 +147,7 @@ export default function Dashboard() {
                         </td>
                         <td data-label="Cadastrado">{item.createdFormat}</td>
                         <td data-label="#">
-                          <button className='action' style={{ backgroundColor: '#3583f6' }}>
+                          <button className='action' style={{ backgroundColor: '#3583f6' }} onClick={() => toggleModal(item)}>
                             <FiSearch color='#FFF' size={17} />
                           </button>
                           <Link to={`/new/${item.id}`} className='action' style={{ backgroundColor: '#f6a935' }}>
@@ -158,6 +166,14 @@ export default function Dashboard() {
           )}
         </>
       </div>
+      {
+        showPostModal && (
+          <Modal
+            conteudo={detail}
+            close={() => setShowPostModal(!showPostModal)}
+          />
+        )
+      }
     </div>
   )
 }
